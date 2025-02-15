@@ -1,0 +1,43 @@
+spring:
+  application:
+    name: qwikcalai
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+  security:
+    oauth2:
+      client:
+        registration:
+          cognito:
+            client-id: ${COGNITO_CLIENT_ID}
+            client-secret: ${COGNITO_CLIENT_SECRET}
+            scope: openid
+            redirect-uri: ${APP_URL}/login/oauth2/code/cognito
+        provider:
+          cognito:
+            issuer-uri: https://cognito-idp.${AWS_REGION}.amazonaws.com/${COGNITO_USER_POOL_ID}
+
+cloud:
+  aws:
+    region:
+      static: us-east-1
+    stack:
+      auto: false
+    credentials:
+      instance-profile: false
+      profile-name: default
+    s3:
+      bucket: ${S3_BUCKET_NAME}
+    sqs:
+      queue-name: ${SQS_QUEUE_NAME}
+    sns:
+      topic-arn: ${SNS_TOPIC_ARN}
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
