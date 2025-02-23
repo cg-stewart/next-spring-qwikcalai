@@ -1,42 +1,46 @@
 package com.qwikcalai.api.model;
 
-import com.amazonaws.services.dynamodbv2.datamodeling.*;
+import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-@DynamoDBTable(tableName = "calendar_events")
+@Entity
+@Table(name = "calendar_events", indexes = {
+    @jakarta.persistence.Index(name = "idx_user_id", columnList = "user_id")
+})
 public class CalendarEvent {
-    @DynamoDBHashKey
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @DynamoDBIndexHashKey(globalSecondaryIndexName = "UserIdIndex")
+    @Column(name = "user_id", nullable = false)
     private String userId;
 
-    @DynamoDBAttribute
+    @Column(name = "event_name", nullable = false)
     private String eventName;
 
-    @DynamoDBAttribute
+    @Column(name = "location")
     private String location;
 
-    @DynamoDBAttribute
+    @Column(name = "start_time", nullable = false)
     private LocalDateTime startTime;
 
-    @DynamoDBAttribute
+    @Column(name = "end_time", nullable = false)
     private LocalDateTime endTime;
 
-    @DynamoDBAttribute
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    @DynamoDBAttribute
+    @Column(name = "source_image_url")
     private String sourceImageUrl;
 
-    @DynamoDBAttribute
+    @Column(name = "ics_file_url")
     private String icsFileUrl;
 
-    @DynamoDBAttribute
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    @DynamoDBAttribute
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 }

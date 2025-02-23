@@ -29,27 +29,81 @@ resource "aws_s3_bucket_versioning" "uploads" {
   }
 }
 
-# DynamoDB tables
-resource "aws_dynamodb_table" "calendar_events" {
-  name           = "${var.project_name}-calendar-events-${var.environment}"
-  billing_mode   = "PAY_PER_REQUEST"
-  hash_key       = "id"
-  stream_enabled = true
+# VPC for Aurora
+module "vpc" {
+  source = "terraform-aws-modules/vpc/aws"
+  version = "5.5.0"
 
-  attribute {
-    name = "id"
-    type = "S"
+  name = "${var.project_name}-vpc-${var.environment}"
+  cidr = "10.0.0.0/16"
+
+  azs             = ["${var.aws_region}a", "${var.aws_region}b"]
+  private_subnets = ["10.0.1.0/24", "10.0.2.0/24"]
+  public_subnets  = ["10.0.101.0/24", "10.0.102.0/24"]
+
+  enable_nat_gateway = true
+  single_nat_gateway = true
+}
+
+# Security group for Aurora
+resource "aws_security_group" "aurora" {
+  name        = "${var.project_name}-aurora-${var.environment}"
+  description = "Security group for Aurora Serverless v2"
+  vpc_id      = module.vpc.vpc_id
+
+  ingress {
+    from_port       = 5432
+    to_port         = 5432
+    protocol        = "tcp"
+    security_groups = [aws_security_group.api.id]
   }
+}
 
-  attribute {
-    name = "user_id"
-    type = "S"
+# Aurora Serverless v2 cluster
+resource "aws_rds_cluster" "main" {
+  cluster_identifier     = "${var.project_name}-${var.environment}"
+  engine                = "aurora-postgresql"
+  engine_mode           = "provisioned"
+  engine_version        = "15.4"
+  database_name         = "qwikcalai"
+  master_username       = "qwikcalai"
+  master_password       = var.db_password
+  skip_final_snapshot   = true
+  vpc_security_group_ids = [aws_security_group.aurora.id]
+  db_subnet_group_name  = aws_db_subnet_group.aurora.name
+
+  serverlessv2_scaling_configuration {
+    min_capacity = 0.5
+    max_capacity = 1.0
   }
+}
 
-  global_secondary_index {
-    name               = "UserIdIndex"
-    hash_key           = "user_id"
-    projection_type    = "ALL"
+# Aurora Serverless v2 instance
+resource "aws_rds_cluster_instance" "main" {
+  identifier         = "${var.project_name}-${var.environment}-1"
+  cluster_identifier = aws_rds_cluster.main.id
+  instance_class     = "db.serverless"
+  engine             = aws_rds_cluster.main.engine
+  engine_version     = aws_rds_cluster.main.engine_version
+}
+
+# DB subnet group
+resource "aws_db_subnet_group" "aurora" {
+  name       = "${var.project_name}-aurora-${var.environment}"
+  subnet_ids = module.vpc.private_subnets
+}
+
+# Security group for API
+resource "aws_security_group" "api" {
+  name        = "${var.project_name}-api-${var.environment}"
+  description = "Security group for API"
+  vpc_id      = module.vpc.vpc_id
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 }
 

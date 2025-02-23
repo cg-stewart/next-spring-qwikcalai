@@ -16,6 +16,12 @@ variable "project_name" {
   default     = "qwikcalai"
 }
 
+variable "db_password" {
+  description = "Password for RDS Aurora PostgreSQL database"
+  type        = string
+  sensitive   = true
+}
+
 variable "tags" {
   description = "Default tags for all resources"
   type        = map(string)
@@ -38,6 +44,24 @@ variable "github_repo" {
 
 variable "github_token" {
   description = "GitHub OAuth token for repository access"
+  type        = string
+  sensitive   = true
+}
+
+variable "openai_api_key" {
+  description = "OpenAI API Key"
+  type        = string
+  sensitive   = true
+}
+
+variable "app_url" {
+  description = "Application URL"
+  type        = string
+  default     = "http://localhost:3000"
+}
+
+variable "db_password" {
+  description = "Database master password"
   type        = string
   sensitive   = true
 }

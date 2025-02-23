@@ -1,39 +1,44 @@
 package com.qwikcalai.api.model;
 
-import com.amazonaws.services.dynamodbv2.datamodeling.*;
+import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-@DynamoDBTable(tableName = "image_uploads")
+@Entity
+@Table(name = "image_uploads", indexes = {
+    @jakarta.persistence.Index(name = "idx_user_id", columnList = "user_id")
+})
 public class ImageUpload {
-    @DynamoDBHashKey
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @DynamoDBIndexHashKey(globalSecondaryIndexName = "UserIdIndex")
+    @Column(name = "user_id", nullable = false)
     private String userId;
 
-    @DynamoDBAttribute
+    @Column(name = "original_file_name")
     private String originalFileName;
 
-    @DynamoDBAttribute
+    @Column(name = "s3_key")
     private String s3Key;
 
-    @DynamoDBAttribute
+    @Column(name = "content_type")
     private String contentType;
 
-    @DynamoDBAttribute
+    @Column(name = "file_size")
     private Long fileSize;
 
-    @DynamoDBAttribute
-    private String status; // UPLOADED, PROCESSING, COMPLETED, FAILED
+    @Column(name = "status")
+    @Enumerated(EnumType.STRING)
+    private ImageStatus status;
 
-    @DynamoDBAttribute
+    @Column(name = "processing_error")
     private String processingError;
 
-    @DynamoDBAttribute
+    @Column(name = "uploaded_at")
     private LocalDateTime uploadedAt;
 
-    @DynamoDBAttribute
+    @Column(name = "processed_at")
     private LocalDateTime processedAt;
 }

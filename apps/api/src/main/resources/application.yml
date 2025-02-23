@@ -16,22 +16,62 @@ spring:
         provider:
           cognito:
             issuer-uri: https://cognito-idp.${AWS_REGION}.amazonaws.com/${COGNITO_USER_POOL_ID}
+  
+  # Database Configuration
+  datasource:
+    url: jdbc:postgresql://localhost:5432/qwikcalai
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  
+  # JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  
+  # Spring Cloud AWS Configuration
+  cloud:
+    aws:
+      region:
+        static: us-east-1
+        auto: false
+      credentials:
+        access-key: ${AWS_ACCESS_KEY_ID}
+        secret-key: ${AWS_SECRET_ACCESS_KEY}
+        instance-profile: false
+      s3:
+        enabled: true
+      sns:
+        enabled: true
+      sqs:
+        enabled: true
+        listener:
+          max-concurrent-messages: 10
+      parameterstore:
+        enabled: true
+        prefix: /qwikcalai
+        name: dev
+        profile-separator: _
+      secretsmanager:
+        enabled: true
+        prefix: /qwikcalai
 
-cloud:
-  aws:
-    region:
-      static: us-east-1
-    stack:
-      auto: false
-    credentials:
-      instance-profile: false
-      profile-name: default
-    s3:
-      bucket: ${S3_BUCKET_NAME}
-    sqs:
-      queue-name: ${SQS_QUEUE_NAME}
-    sns:
-      topic-arn: ${SNS_TOPIC_ARN}
+# AWS Service Configuration
+aws:
+  s3:
+    bucket:
+      name: ${S3_BUCKET_NAME}
+  sqs:
+    queue:
+      name: ${SQS_QUEUE_NAME}
+  sns:
+    topic:
+      arn: ${SNS_TOPIC_ARN}
 
 server:
   port: 8080
